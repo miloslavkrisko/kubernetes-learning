@@ -1,34 +1,38 @@
 # kubernetes-learning
 
-# Usefull Links
-
 https://kubernetes.io/docs/home/
+
+https://helm.sh/docs/
 
 # Commands
 
-# # Kubernetes Commands 
-# # # Configmap
+## Kubernetes Commands 
+### Configmap
 ```
 cd config
 kubectl create configmap --from-file=app.properties file-conf --dry-run=client -o yaml >> file-conf.yaml
 kubectl create configmap env-conf --from-literal=OS_VAR=VALUE --dry-run=client -o yaml >> env-conf.yaml
 ```
 
-# # # Secret
+### Secret
 
-# # # Deployment
+### Deployment
 
-# # # Statefulset
+### Statefulset
 
-# # # Daemonset
+### Daemonset
 
-# # # Cronjob
+### Cronjob
 
-# # # Pod
+### Pod
 
 
-# # Helm command
+## Helm command
 ```
 helm create <FolderName>
 helm create example 
+helm upgrade --install --dry-run <ReleaseName> -f values.yaml -f values-<env>.yaml ./
+
+# Usefull command for generating the structure to know if there isnt any syntax error or missplacement
+helm template --debug
 ```

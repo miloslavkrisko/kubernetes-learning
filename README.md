@@ -8,11 +8,11 @@ https://kubernetes.io/docs/home/
 
 # # Kubernetes Commands 
 # # # Configmap
-'''
+```
 cd config
 kubectl create configmap --from-file=app.properties file-conf --dry-run=client -o yaml >> file-conf.yaml
 kubectl create configmap env-conf --from-literal=OS_VAR=VALUE --dry-run=client -o yaml >> env-conf.yaml
-'''
+```
 
 # # # Secret
 
@@ -28,7 +28,7 @@ kubectl create configmap env-conf --from-literal=OS_VAR=VALUE --dry-run=client -
 
 
 # # Helm command
-'''
+```
 helm create <FolderName>
 helm create example 
-'''
+```

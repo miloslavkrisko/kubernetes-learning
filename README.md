@@ -1,8 +1,18 @@
 # kubernetes-learning
 
+## Links
 https://kubernetes.io/docs/home/
 
 https://helm.sh/docs/
+
+## Plugins & Tools
+1. VS Code
+Plugins:
+- vscode-helm
+- helm extras
+- docker
+- aws toolkit
+
 
 # Commands
 

@@ -33,16 +33,33 @@ kubectl create configmap env-conf --from-literal=OS_VAR=VALUE --dry-run=client -
 
 ### Secret
 
+```
+kubectl create secret generic --from-file=secretfile.yaml=app.yaml --dry-run=client -o yaml >> secret-file.yaml
+kubectl create secret generic env-conf --from-literal=OS_VAR=VALUE --dry-run=client -o yaml >> secret-env.yaml
+kubectl create secret docker-registry my-secret --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD --docker-email=DOCKER_EMAIL --dry-run=client -o yaml >> docker-secret.yaml
+
+```
+
 ### Deployment
 
-### Statefulset
-
-### Daemonset
+```
+kubectl create deployment --dry-run=client --image=nginx:stable test -o yaml
+```
 
 ### Cronjob
 
+```
+kubectl create cronjob my-job --image=busybox --schedule="*/1 * * * *" -- date
+```
+
 ### Pod
 
+### Service
+
+```
+kubectl create service clusterip cluster-service --tcp=8080:80 --dry-run=client -o yaml >> clusterService.yaml
+kubectl create service nodeport nodeport-service --tcp=8080:80 --node-port=31000 --dry-run=client -o yaml >> nodeportService.yaml
+```
 
 ## Helm command
 ```

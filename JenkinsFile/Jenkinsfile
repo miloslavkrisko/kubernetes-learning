@@ -1,0 +1,86 @@
+#!/usr/bin/groovy
+
+/* Function which replace string */
+String getEnvironmentSpecificValue(String environment, String defaultValue, String ... args) {
+    // println "Find value for $environment"
+    for (int i = 0; i < args.length;) {
+        String env = args[i++];
+        String value = args[i++]
+        if (environment == env) {
+            return value;
+        }
+    }
+    return defaultValue;
+}
+
+pipeline {
+    /* Allways ensure you are using the proper agent for running the job */
+    agent { label "eks-helm" }
+
+    /* Parameters which are being used by theJob.  
+        If you want to limit the options which the people can use allways go for the choices option.
+        It can be recommended if you want to limit it to specific namespaces, environments or even application names
+    
+    */
+    parameters {
+        string name: 'IMAGE_TAG', defaultValue: '', description: 'Docker image tag of application for deployment'
+        choice choices: ['dev', 'test'], description: 'Select desired environment for deployment', name: 'ENV'
+        string name: 'NAMESPACE', defaultValue: 'default', description: "Namespace where the application should be deployed"
+        string name: 'GIT_BRANCH', defaultValue: "master" , description: "Git branch which is being used for the deployment"
+        string name: 'APP_NAME', defaultValue: "" , description: "Git branch which is being used for the deployment"
+    }
+
+ environment {		
+        environment = "${env.ENV ?: 'dev'}"
+    }    
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Kubernetes deploy') {
+            steps {
+                dir('helm/example/') {
+                    script {
+                        try {
+                            /* Configure the cluster name and credentials which are taken from Jenkins Global OS variable */
+                            def eksClusterName = getEnvironmentSpecificValue(environment, env.DEV_EKS,
+                                                            'test', env.TEST_EKS
+                                                    )
+                            def credentialsId = getEnvironmentSpecificValue(environment,'dev-Jenkins',
+                                    'test', 'test-Jenkins'
+                            )                                                    
+                            /* Is going to reuse the EKS credentials to connect to the cluster and perform the deployment step */
+                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: credentialsId, secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                                /* Connects to the cluster */
+                                sh(script: 'aws eks --region us-east-1 update-kubeconfig --name ' + eksClusterName )
+                                /* Outputs all running pods in specific namespace just to confirm that the Parameters were selected properly */
+                                sh(script: 'kubectl get pods -n ' + params.NAMESPACE)
+                                /*  If you don't specify image Tag the defaul one taken from the values-<env>.yaml will be taken, but if it is specified it will get overwritten.
+                                    This implementation is specially usefull if you don't want to do commit for the image change before being sure that the corresponding version is 
+                                    stable. Mostly used when the deployment goes from the Dev branches
+                                 */
+                                if ( params.IMAGE_TAG.isEmpty())
+                                {
+                                sh(script: 'helm upgrade --install --atomic ' + params.APP_NAME +' -f values.yaml -f values-' + params.ENV + '.yaml ./ -n ' + params.NAMESPACE )
+                                }
+                                else
+                                {
+                                sh(script: 'helm upgrade --install --atomic ' + params.APP_NAME +' -f values.yaml -f values-' + params.ENV + '.yaml --set image.tag=' + params.IMAGE_TAG + ' ./ -n ' + params.NAMESPACE )
+                                }
+                                      
+                        }
+                        }
+                        catch (e) {
+                            throw  e
+                        }
+                    } 
+                }
+            }
+        }
+    }
+}
+
+
+
